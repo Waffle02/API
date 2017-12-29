@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SimpleScoreboard {
     private static Map<String, OfflinePlayer> cache = new HashMap<>();
-
+    private final UUID invalidUserUUID = UUID.nameUUIDFromBytes("InvalidUsername".getBytes(Charsets.UTF_8));
     private Scoreboard scoreboard;
     private String title;
     private Map<String, Integer> scores;
@@ -23,6 +23,9 @@ public class SimpleScoreboard {
     private List<Team> teams;
     private List<Integer> removed;
     private Set<String> updated;
+    private Class<?> gameProfileClass;
+    private Constructor<?> gameProfileConstructor;
+    private Constructor<?> craftOfflinePlayerConstructor;
 
     public SimpleScoreboard(String title) {
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
@@ -55,7 +58,7 @@ public class SimpleScoreboard {
 
         scores.remove(toRemove);
 
-        if(b)
+        if (b)
             removed.add(score);
 
         return true;
@@ -97,13 +100,13 @@ public class SimpleScoreboard {
     }
 
     @SuppressWarnings("deprecation")
-	private void applyText(Team team, String text, OfflinePlayer result) {
+    private void applyText(Team team, String text, OfflinePlayer result) {
         Iterator<String> iterator = Splitter.fixedLength(16).split(text).iterator();
         String prefix = iterator.next();
 
         team.setPrefix(prefix);
 
-        if(!team.hasPlayer(result))
+        if (!team.hasPlayer(result))
             team.addPlayer(result);
 
         if (text.length() > 16) {
@@ -129,7 +132,7 @@ public class SimpleScoreboard {
     }
 
     @SuppressWarnings("deprecation")
-	public void update() {
+    public void update() {
         if (updated.isEmpty()) {
             return;
         }
@@ -162,11 +165,11 @@ public class SimpleScoreboard {
             Team t = scoreboard.getTeam(ChatColor.values()[text.getValue()].toString());
             Map.Entry<Team, OfflinePlayer> team;
 
-            if(!updated.contains(text.getKey())) {
+            if (!updated.contains(text.getKey())) {
                 continue;
             }
 
-            if(t != null) {
+            if (t != null) {
                 String color = ChatColor.values()[text.getValue()].toString();
 
                 if (!cache.containsKey(color)) {
@@ -194,7 +197,7 @@ public class SimpleScoreboard {
     public void setTitle(String title) {
         this.title = ChatColor.translateAlternateColorCodes('&', title);
 
-        if(obj != null)
+        if (obj != null)
             obj.setDisplayName(this.title);
     }
 
@@ -213,11 +216,6 @@ public class SimpleScoreboard {
         for (Player p : players)
             p.setScoreboard(scoreboard);
     }
-
-    private final UUID invalidUserUUID = UUID.nameUUIDFromBytes("InvalidUsername".getBytes(Charsets.UTF_8));
-    private Class<?> gameProfileClass;
-    private Constructor<?> gameProfileConstructor;
-    private Constructor<?> craftOfflinePlayerConstructor;
 
     @SuppressWarnings("deprecation")
     private OfflinePlayer getOfflinePlayerSkipLookup(String name) {
